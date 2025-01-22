@@ -24,7 +24,7 @@ create index author_id
 
 create table library
 (
-    id   bigint       not null
+    id   bigint       not null auto_increment
         primary key,
     name varchar(255) not null
 );
@@ -34,8 +34,7 @@ create table library_info
     id              bigint       not null
         primary key,
     address         varchar(255) not null,
-    contact_number  varchar(15)  null,
-    number_of_books int          null,
+    phone  varchar(15)  null,
     constraint fk_library
         foreign key (id) references library (id)
 );

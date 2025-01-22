@@ -16,6 +16,12 @@ VALUES
    (1, 'Central Library'),
    (2, 'Community Library');
 
+INSERT INTO library_info (id, address, phone)
+VALUES
+    (1, '123 Main St, Springfield', '555-1234'),
+    (2, '456 Elm St, Springfield', '555-5678');
+
+
 INSERT INTO library_book (library_id, book_id)
 VALUES
    (1, 1),

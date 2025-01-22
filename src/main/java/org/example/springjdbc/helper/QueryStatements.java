@@ -56,4 +56,66 @@ public enum QueryStatements {
     public static final String DELETE_BOOK = """
             DELETE FROM book WHERE id = ?
             """;
+
+    //library repo
+    public static final String FIND_LIBRARY_WITH_ASSOCIATIONS_BY_ID = """
+            SELECT l.id AS library_id,
+                   l.name AS library_name,
+                   li.id AS library_info_id,
+                   li.address AS library_address,
+                   li.phone AS library_phone,
+                   b.id AS book_id,
+                   b.author_id AS book_author_id,
+                   b.title AS book_title,
+                   b.release_date AS book_release_date
+            FROM library l
+            LEFT JOIN library_info li ON l.id = li.id
+            LEFT JOIN library_book lb ON l.id = lb.library_id
+            LEFT JOIN book b ON lb.book_id = b.id
+            WHERE l.id = ?
+            ORDER BY b.id;
+            """;
+
+    public static final String FIND_ALL_LIBRARIES_WITH_ASSOCIATIONS = """
+        SELECT l.id AS library_id,
+               l.name AS library_name,
+               li.id AS library_info_id,
+               li.address AS library_address,
+               li.phone AS library_phone,
+               b.id AS book_id,
+               b.title AS book_title,
+               b.release_date AS book_release_date
+        FROM library l
+        LEFT JOIN library_info li ON l.id = li.id
+        LEFT JOIN library_book lb ON l.id = lb.library_id
+        LEFT JOIN book b ON lb.book_id = b.id
+    """;
+
+    public static final String INSERT_LIBRARY = """
+        INSERT INTO library (name) VALUES (?)
+    """;
+
+    public static final String INSERT_LIBRARY_INFO = """
+        INSERT INTO library_info (id, address, phone) VALUES (?,?,?)
+    """;
+
+    public static final String UPDATE_LIBRARY = """
+        UPDATE library
+        SET name = ?
+        WHERE id = ?
+    """;
+
+    public static final String UPDATE_LIBRARY_INFO = """
+        UPDATE library_info
+        SET address = ?, phone = ?
+        WHERE id = ?
+    """;
+
+    public static final String DELETE_LIBRARY = """
+        DELETE FROM library WHERE id = ?
+    """;
+
+    public static final String DELETE_LIBRARY_INFO = """
+        DELETE FROM library_info WHERE id = ?
+    """;
 }

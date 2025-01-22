@@ -6,6 +6,7 @@ ALTER TABLE library_book DROP FOREIGN KEY fk_library_book_library;
 DROP INDEX author_id ON book;
 
 DROP TABLE IF EXISTS library_info;
+DROP TABLE IF EXISTS library_book;
 DROP TABLE IF EXISTS library;
 DROP TABLE IF EXISTS book;
 DROP TABLE IF EXISTS author;
