@@ -1,11 +1,13 @@
 package org.example.springjdbc.repository.implementation;
 
 import org.example.springjdbc.model.Book;
+import org.example.springjdbc.model.Library;
 import org.example.springjdbc.repository.declaration.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,14 +16,12 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+
+import static org.example.springjdbc.helper.QueryStatements.*;
 
 /**
-    * This class implements the BookRepository interface using RowMapper<T> with jdbcTemplate.
+    * This class implements the BookRepository interface using RowMapper<T>, ResultSetExtractor<T> with jdbcTemplate.
  */
 @Repository("bookRepository")
 public class BookRepositoryImpl implements BookRepository {
@@ -33,11 +33,9 @@ public class BookRepositoryImpl implements BookRepository {
     }
 
     @Override
-    public Optional<Book> findById(Long id) {
-        String sql = "SELECT * FROM book WHERE id = ?";
+    public Optional<Book> findByIdWithAssociations(Long id) {
         try {
-            Book book = jdbcTemplate.queryForObject(sql, new BookRowMapper(), id);
-            return Optional.ofNullable(book);
+            return jdbcTemplate.query(FIND_BOOK_WITH_ASSOCIATIONS_BY_ID, new BookWithAssociationsExtractor(), id);
         } catch (Exception e) {
             LOGGER.error("Problem when executing SELECT!", e);
             return Optional.empty();
@@ -46,18 +44,16 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public Set<Book> findAll() {
-        String sql = "SELECT * FROM book";
-        return new HashSet<>(jdbcTemplate.query(sql, new BookRowMapper()));
+        return new HashSet<>(jdbcTemplate.query(SELECT_ALL_BOOKS, new BookRowMapper()));
     }
 
     @Override
     public Book create(Book book) {
-        String sql = "INSERT INTO book (title, author_id, release_date) VALUES (?, ?, ?)";
         try {
             KeyHolder keyHolder = new GeneratedKeyHolder();
 
             int rowsAffected = jdbcTemplate.update(connection -> {
-                PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                PreparedStatement ps = connection.prepareStatement(INSERT_BOOK, PreparedStatement.RETURN_GENERATED_KEYS);
                 ps.setString(1, book.title());
                 ps.setLong(2, book.authorId());
                 ps.setObject(3, book.releaseDate());
@@ -66,7 +62,7 @@ public class BookRepositoryImpl implements BookRepository {
 
             if (rowsAffected > 0) {
                 Long generatedId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-                return new Book(generatedId, book.authorId(), book.title(), book.releaseDate());
+                return new Book(generatedId, book.authorId(), book.title(), book.releaseDate(), Set.of());
             }
             throw new RuntimeException("Failed to create book");
         } catch (Exception e) {
@@ -77,11 +73,10 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public Book update(long id, Book book) {
-        String sql = "UPDATE book SET title = ?, author_id = ?, release_date = ? WHERE id = ?";
         try {
-            int rowsAffected = jdbcTemplate.update(sql, book.title(), book.authorId(), book.releaseDate(), id);
+            int rowsAffected = jdbcTemplate.update(UPDATE_BOOK, book.title(), book.authorId(), book.releaseDate(), id);
             if (rowsAffected > 0) {
-                return new Book(id, book.authorId(), book.title(), book.releaseDate());
+                return new Book(id, book.authorId(), book.title(), book.releaseDate(), Set.of());
             }
             throw new RuntimeException("No rows updated");
         } catch (Exception e) {
@@ -92,9 +87,8 @@ public class BookRepositoryImpl implements BookRepository {
 
     @Override
     public boolean delete(long id) {
-        String sql = "DELETE FROM book WHERE id = ?";
         try {
-            int rowsAffected = jdbcTemplate.update(sql, id);
+            int rowsAffected = jdbcTemplate.update(DELETE_BOOK, id);
             return rowsAffected > 0;
         } catch (Exception e) {
             LOGGER.error("Problem when executing DELETE!", e);
@@ -111,8 +105,48 @@ public class BookRepositoryImpl implements BookRepository {
                     rs.getString("title"),
                     rs.getDate("release_date") != null
                             ? rs.getDate("release_date").toLocalDate()
-                            : null
+                            : null,
+                    Set.of()
             );
         }
     }
+
+    private static class BookWithAssociationsExtractor implements ResultSetExtractor<Optional<Book>> {
+        @Override
+        public Optional<Book> extractData(ResultSet rs) throws SQLException {
+            Book book = null;
+            Map<Long, Library> libraryMap = new HashMap<>();
+
+            while (rs.next()) {
+                if (book == null) {
+                    book = new Book(
+                            rs.getLong("book_id"),
+                            rs.getLong("book_author_id"),
+                            rs.getString("book_title"),
+                            rs.getDate("book_release_date") != null
+                                    ? rs.getDate("book_release_date").toLocalDate()
+                                    : null,
+                            new HashSet<>()
+                    );
+                }
+
+                Long libraryId = rs.getLong("library_id");
+                if (libraryId != 0) {
+                    libraryMap.putIfAbsent(libraryId, new Library(
+                            libraryId,
+                            rs.getString("library_name"),
+                            null,
+                            new HashSet<>()
+                    ));
+                }
+            }
+
+            if (book != null) {
+                book.libraries().addAll(libraryMap.values());
+            }
+
+            return Optional.ofNullable(book);
+        }
+    }
+
 }

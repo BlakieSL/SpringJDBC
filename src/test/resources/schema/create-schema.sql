@@ -40,3 +40,18 @@ create table library_info
         foreign key (id) references library (id)
 );
 
+create table library_book
+(
+    library_id bigint not null,
+    book_id    bigint not null,
+    primary key (library_id, book_id),
+    constraint fk_library_book_book
+        foreign key (book_id) references book (id)
+            on delete cascade,
+    constraint fk_library_book_library
+        foreign key (library_id) references library (id)
+            on delete cascade
+);
+
+
+

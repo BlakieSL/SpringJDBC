@@ -14,6 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,23 +41,34 @@ public class BookRepositoryTest {
     }
 
     @SqlSetupAuthorBook
-    @DisplayName("TEST findById - Should return Book")
+    @DisplayName("TEST findByIdWithAssociations - Should return Book with Libraries")
     @Test
-    void testFindById() {
-        var result = bookRepository.findById(1L);
+    void testFindByIdWithAssociations() {
+        var result = bookRepository.findByIdWithAssociations(1L);
 
         assertTrue(result.isPresent());
-        assertEquals(1L, result.get().id());
-        assertEquals(1L, result.get().authorId());
-        assertEquals("Book One by John", result.get().title());
-        assertEquals(LocalDate.of(2023, 1, 15), result.get().releaseDate());
+
+        var book = result.get();
+        assertEquals(1L, book.id());
+        assertEquals(1L, book.authorId());
+        assertEquals("Book One by John", book.title());
+        assertEquals(LocalDate.of(2023, 1, 15), book.releaseDate());
+
+        var libraries = book.libraries();
+        assertNotNull(libraries);
+        assertEquals(1, libraries.size());
+
+        var library = libraries.iterator().next();
+        assertEquals(1L, library.id());
+        assertEquals("Central Library", library.name());
+        assertNull(library.libraryInfo());
     }
 
     @SqlSetupAuthorBook
-    @DisplayName("TEST findById - Should return Optional.empty()")
+    @DisplayName("TEST findByIdWithAssociations - Should return Optional.empty()")
     @Test
     void testFindByIdNotFound() {
-        var result = bookRepository.findById(999L);
+        var result = bookRepository.findByIdWithAssociations(999L);
 
         assertTrue(result.isEmpty());
     }
@@ -109,7 +121,7 @@ public class BookRepositoryTest {
     @DisplayName("TEST create - Should create and return Book")
     @Test
     void testCreate() {
-        var newBook = new Book(null, 1L, "New Book", LocalDate.of(2023, 10, 10));
+        var newBook = new Book(null, 1L, "New Book", LocalDate.of(2023, 10, 10), Set.of());
         var createdBook = bookRepository.create(newBook);
 
         assertNotNull(createdBook);
@@ -122,7 +134,7 @@ public class BookRepositoryTest {
     @DisplayName("TEST create - Should fail for missing fields")
     @Test
     void testCreateWithMissingFields() {
-        var incompleteBook = new Book(null, null, "Incomplete Book", null);
+        var incompleteBook = new Book(null, null, "Incomplete Book", null, Set.of());
 
         assertThrows(Exception.class, () -> bookRepository.create(incompleteBook));
     }
@@ -131,7 +143,7 @@ public class BookRepositoryTest {
     @DisplayName("TEST update - Should update and return Book")
     @Test
     void testUpdate() {
-        var existingBook = new Book(1L, 1L, "Updated Title", LocalDate.of(2023, 1, 15));
+        var existingBook = new Book(1L, 1L, "Updated Title", LocalDate.of(2023, 1, 15), Set.of());
         var updatedBook = bookRepository.update(1L, existingBook);
 
         assertNotNull(updatedBook);
@@ -145,7 +157,7 @@ public class BookRepositoryTest {
     @DisplayName("TEST update - Should throw exception when Book not found")
     @Test
     void testUpdateNotFound() {
-        var nonExistentBook = new Book(999L, 1L, "NonExistent Book", LocalDate.of(2023, 1, 15));
+        var nonExistentBook = new Book(999L, 1L, "NonExistent Book", LocalDate.of(2023, 1, 15), Set.of());
 
         var exception = assertThrows(
                 RuntimeException.class,
@@ -162,7 +174,7 @@ public class BookRepositoryTest {
         boolean isDeleted = bookRepository.delete(1L);
 
         assertTrue(isDeleted);
-        Optional<Book> deletedBook = bookRepository.findById(1L);
+        Optional<Book> deletedBook = bookRepository.findByIdWithAssociations(1L);
         assertTrue(deletedBook.isEmpty());
     }
 

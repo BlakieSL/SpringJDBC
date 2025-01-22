@@ -77,7 +77,8 @@ public class AuthorRepositoryImpl implements AuthorRepository {
                                 rs.getString("title"),
                                 rs.getDate("release_date") != null
                                         ? rs.getDate("release_date").toLocalDate()
-                                        : null
+                                        : null,
+                                Set.of()
                         ));
                     }
                 }
@@ -120,7 +121,8 @@ public class AuthorRepositoryImpl implements AuthorRepository {
                                 rs.getString("title"),
                                 rs.getDate("release_date") != null
                                         ? rs.getDate("release_date").toLocalDate()
-                                        : null
+                                        : null,
+                                Set.of()
                         ));
                     }
                 }
