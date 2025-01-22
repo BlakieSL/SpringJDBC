@@ -1,9 +1,9 @@
-delete from example.author;
-delete from example.book;
-delete from example.library;
-delete from example.library_info;
+delete from author;
+delete from book;
+delete from library;
+delete from library_info;
 
-alter table example.author AUTO_INCREMENT = 1;
-alter table example.book AUTO_INCREMENT = 1;
-alter table example.library AUTO_INCREMENT = 1;
-alter table example.library_info AUTO_INCREMENT = 1;
+alter table author AUTO_INCREMENT = 1;
+alter table book AUTO_INCREMENT = 1;
+alter table library AUTO_INCREMENT = 1;
+alter table library_info AUTO_INCREMENT = 1;

@@ -1,12 +1,10 @@
-
-INSERT INTO example.author (id, first_name, last_name)
+INSERT INTO author (id, first_name, last_name)
 VALUES
     (1, 'John', 'Doe'),
     (2, 'Jane', 'Smith'),
     (3, 'Emily', 'Johnson');
 
--- Insert books
-INSERT INTO example.book (id, author_id, title, release_date)
+INSERT INTO book (id, author_id, title, release_date)
 VALUES
     (1, 1, 'Book One by John', '2023-01-15'),
     (2, 1, 'Book Two by John', '2023-03-10'),

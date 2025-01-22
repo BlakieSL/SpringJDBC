@@ -76,7 +76,6 @@ public class AuthorRepositoryTest {
         assertTrue(result.isEmpty());
     }
 
-
     @SqlSetupAuthorBook
     @DisplayName("TEST findAll - Should return all Authors")
     @Test
