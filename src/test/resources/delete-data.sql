@@ -1,8 +1,8 @@
-delete from author;
+delete from library_book;
+delete from library_info;
 delete from book;
 delete from library;
-delete from library_info;
-delete from library_book;
+delete from author;
 
 alter table author AUTO_INCREMENT = 1;
 alter table book AUTO_INCREMENT = 1;

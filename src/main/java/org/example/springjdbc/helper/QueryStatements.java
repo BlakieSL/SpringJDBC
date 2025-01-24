@@ -45,7 +45,7 @@ public enum QueryStatements {
             """;
 
     public static final String SELECT_ALL_BOOKS = """
-            "SELECT * FROM book"
+            SELECT * FROM book
             """;
     public static final String INSERT_BOOK = """
             INSERT INTO book (title, author_id, release_date) VALUES (?, ?, ?)
